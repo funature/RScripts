@@ -1096,15 +1096,15 @@ singleplot.solar <- function (data, legend.range) {
     legend <- g_legend(p)
 
 #     text <- c(expression(bquote(paste("maximum: ", .(round(QE,0)), "kWh/", plain("("), kW[p], plain("a)")))),
-#              paste("slope: ", slope, "°", sep=""),
-#              paste("azimuth: ", azimuth, "°", sep=""))
+#              paste("slope: ", slope, "?", sep=""),
+#              paste("azimuth: ", azimuth, "?", sep=""))
 
     text <- c("maximum: ",
               expression(bquote(paste(.(round(QE,0)), "kWh/", plain("("), kW[p], plain("a)")))),
               "slope: ",
-              paste(slope, "°", sep=""),
+              paste(slope, "?", sep=""),
               "azimuth: ",
-              paste(azimuth, "°", sep=""))
+              paste(azimuth, "?", sep=""))
 
     grid.newpage()
     pushViewport(
@@ -1929,7 +1929,6 @@ filename <- "CHN_Beijing.Beijing.545110_IWEC"
 
 plot.solar.line <- function(filename){
   data <- data.read(paste("D:/Results_PV-MuC/", filename, ".epw_PV-MuC-template.txt", sep=""), FALSE)
-  table <- table.pv.sum(filename)
   
   data$QE <- data$QE/1000
 #   data <- data[order(data$AZIMUTH, decreasing = FALSE),]
@@ -1943,10 +1942,10 @@ plot.solar.line <- function(filename){
   geom_line(aes(x=SLOPE, y=QE, group=AZIMUTH, order = AZIMUTH, color=factor(AZIMUTH), linetype=rep(factor(c(1, 2, 5, 2)), 28)), linetype=0, size=0.5) +
   geom_line(data = data.major, aes(x=SLOPE, y=QE, group=AZIMUTH, order = AZIMUTH, color=factor(AZIMUTH)), linetype = 1, size=1.5) +
   geom_line(data = data.minor, aes(x=SLOPE, y=QE, group=AZIMUTH, order = AZIMUTH, color=factor(AZIMUTH)), linetype = 5, size=1) +
-  geom_line(data = data.min, aes(x=SLOPE, y=QE, group=AZIMUTH, order = AZIMUTH, color=factor(AZIMUTH)), linetype = 3, size=0.8) +
+  geom_line(data = data.min, aes(x=SLOPE, y=QE, group=AZIMUTH, order = AZIMUTH, color=factor(AZIMUTH)), linetype = 3, size=1) +
 #     xlim(0, 110) +
-    ylim(-200, 1500) +
-  scale_x_continuous(limits=c(0,90), breaks=15*c(0:6)) +
+  scale_x_continuous(limits=c(0,90), breaks=15*c(0:6), expand = c(0,0)) +
+  scale_y_continuous(limits=c(-200,1500), breaks=300*c(0:5), expand = c(0,0)) +
 #   scale_colour_manual(values = c("#FF00FF", "#FF40bf", "#ff8080", "#ffbf40", "#ffff00", "#bfbf30", "#808040", "#404030", "#000000", "#304040", "#408080", "#30bfbf", "#00ffff", "#40bfff", "#8080ff", "#bf40ff")) +
   
   scale_colour_manual(values = c("#00ff00", "#00bb44", "#008888", "#0044bb", "#0000ff", "#0000bb", "#000088", "#000044", "#000000", "#440000", "#880000", "#bb0000", "#ff0000", "#bb4400", "#888800", "#44bb00")) +
@@ -1970,8 +1969,8 @@ plot.solar.line <- function(filename){
       legend.position = "none",
       legend.key = element_rect(fill=NA)
     ) +
-  labs(x="slope [ ° ]", y=expression(paste("energy output from PV system [ kWh/", plain("("), kW[p], plain("a) ]"))))+
-  guides(color=guide_legend(title="Azimuth [ ° ]", override.aes = list(fill=NA, linetype=rep(c(1, 5, 3, 5), 4), size=rep(c(1.5, 1, 0.8, 1), 4))))
+  labs(x="slope [ Â° ]", y=expression(paste("energy output from PV system [ kWh/", plain("("), kW[p], plain("a) ]"))))+
+  guides(color=guide_legend(title="Azimuth [ Â° ]", override.aes = list(fill=NA, linetype=rep(c(1, 5, 3, 5), 4), size=rep(c(1.5, 1, 0.8, 1), 4))))
   p
 }
 
@@ -1982,13 +1981,13 @@ legend.pv <- function(){
   min <- data.frame(x=45*c(0:7)+22.5)
   p <- ggplot(data=sample, environment=environment()) + 
     geom_point(aes(x=x, y=0, color=factor(x)), size=0)+
-    ylim(0, 8) +
+    ylim(0, 7) +
     scale_colour_manual(values = c("#00ff00", "#00bb44", "#008888", "#0044bb", "#0000ff", "#0000bb", "#000088", "#000044", "#000000", "#440000", "#880000", "#bb0000", "#ff0000", "#bb4400", "#888800", "#44bb00", "#00ff00")) +
-    geom_segment(data=major, aes(x = x, y = 2, xend = x, yend = 7.5, color=factor(x)), linetype = 1, size=1.5) +
-    geom_segment(data=minor, aes(x = x, y = 2, xend = x, yend = 7.5, color=factor(x)), linetype = 5, size=1) +
-    geom_segment(data=min, aes(x = x, y = 2, xend = x, yend = 7.5, color=factor(x)), linetype = 3, size=0.8) +
+    geom_segment(data=major, aes(x = x, y = 1.5, xend = x, yend = 6.5, color=factor(x)), linetype = 1, size=1.5) +
+    geom_segment(data=minor, aes(x = x, y = 1.5, xend = x, yend = 6.5, color=factor(x)), linetype = 5, size=1) +
+    geom_segment(data=min, aes(x = x, y = 1.5, xend = x, yend = 6.5, color=factor(x)), linetype = 3, size=0.8) +
     coord_polar(start = pi)+
-    scale_x_continuous(limits=c(0, 360), breaks=22.5*c(0:15), labels=c("South", "SSW", "SW", "WSW", "West", "WNW", "NW", "NNW", "North", "NNE", "NE", "ENE", "East", "ESE", "SE", "SSE")) +
+    scale_x_continuous(limits=c(0, 360), breaks=22.5*c(0:15), labels=c("S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE")) +
     theme(
       axis.title=element_blank(),
       axis.text.x=element_text(size=6),
@@ -2009,10 +2008,13 @@ plot.solar.table <- function(filename){
   df.sum$vertical <- sub$QE/1000
   df.sum$hp <- paste(round(df.sum$horizontal/df.sum$max*100),"%")
   df.sum$vp <- paste(round(df.sum$vertical/df.sum$max*100), "%")
+  df.sum$AZIMUTH <- c("S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE")
   
   tableGrob(df.sum[,c(1,2,5,6)], 
+            cols = c("azimuth", "max", "h", "v"),
             show.rownames=FALSE, 
             gp=gpar(fontsize=7, lwd=2), 
+            padding.v = unit(1.4, "lines"),
             gpar.colfill = gpar(fill = NA, col = "black"),
             gpar.corefill = gpar(fill = NA, col = "black"))
 }
@@ -2035,18 +2037,24 @@ save.solar.line <- function (filename, legend.range=NULL, file="singlePlot", for
     viewport(
       layout=grid.layout(1, 2,
                          widths=unit(c(7/10, 3/10),
-                                      c("npc", "npc")))))
+                                      c("npc", "npc"))
+                         )))
   pushViewport(viewport(layout.pos.col=1, layout.pos.row=1))
   
-  vp <- viewport(width = 0.4, height = 0.4, x = unit(4, "lines"),
-                 y = unit(2, "lines"), just = c("left",
+  vp <- viewport(width = 0.35, height = 0.35, x = unit(4, "lines"),
+                 y = unit(2.5, "lines"), just = c("left",
                                                 "bottom"))
   print(p, newpage=FALSE)
   print(legend.pv(), vp = vp, newpage=FALSE)
+  grid.draw(textGrob(filename, x=unit(0.93, "npc"), y=unit(0.13, "npc"), just = "right",gp=gpar(fontsize=7)))
   popViewport()
   
   pushViewport(viewport(layout.pos.col=2, layout.pos.row=1, just="top"))
-  grid.draw(plot.solar.table(filename))
+  grob <- plot.solar.table(filename)
+  width <- grobWidth(grob)
+  height <- grobHeight(grob)
+  grid.draw(grobTree(grob, vp=viewport(x=width*0.5,
+                                     y=unit(1,"npc") - height*0.5 - unit(1, "lines"))))
   popViewport()
   
   dev.off()
