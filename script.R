@@ -28,8 +28,13 @@ instant_pkgs <- function(pkgs) {
   }
 }
 
-libraries <- c("plyr", "ggplot2", "grid", "gtable", "sp", "Cairo", "gridExtra", "reshape2", "graphics")
-instant_pkgs(libraries)
+packages <- c("plyr", "ggplot2", "grid", "gtable", "sp", "Cairo", "gridExtra", "reshape2", "graphics", "RODBC", "xlsx")
+instant_pkgs(packages)
+
+for (i in 1:length(packages)){
+  pkg <- packages[i]
+  library(pkg, character.only = TRUE)
+}
 
 
 # Some values needed by the program
@@ -322,12 +327,12 @@ data.single.solar <- function (data, location.single, str.period) {
 
 # prepare the data to plot 
 data.single.heat.heating <- function (data) {
-  mdata <- melt(data, id=c("DCK",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("heating", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QINF",  "QVENT",	"QGINT",	"QSOL"))
 }
 
 data.single.heat.cooling <- function (data) {
-  mdata <- melt(data, id=c("DCK",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("cooling", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QINF",  "QVENT",  "QGINT",	"QSOL"))
 }
 
@@ -342,12 +347,12 @@ data.single.heat.cooling.new <- function (data) {
 }
 
 data.single.moisture.heating <- function (data) {
-  mdata <- melt(data, id=c("DCK",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("heating", mdata$SITUATION) & mdata$variable %in% c("MWINF",  "MWVENT",  "MWIGAIN"))
 }
 
 data.single.moisture.cooling <- function (data) {
-  mdata <- melt(data, id=c("DCK",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("cooling", mdata$SITUATION) & mdata$variable %in% c("MWINF",  "MWVENT",  "MWIGAIN"))
 }
 
@@ -363,30 +368,42 @@ data.single.moisture.cooling.new <- function (data) {
 
 data.single.balance.heating <- function (data) {
   data[, c("MWINF",  "MWVENT",  "MWIGAIN")] <- sapply(data[, c("MWINF",  "MWVENT",  "MWIGAIN")], as.numeric)
-#   data[ , c("MWINF",  "MWVENT",  "MWIGAIN")] <- data[ , c("MWINF",  "MWVENT",  "MWIGAIN")]*100
-  mdata <- melt(data, id=c("DCK",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("heating", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QINF",  "QVENT",	"QGINT",	"QSOL", "MWINF",  "MWVENT",  "MWIGAIN"))
 }
 
 data.single.balance.cooling <- function (data) {
   data[, c("MWINF",  "MWVENT",  "MWIGAIN")] <- sapply(data[, c("MWINF",  "MWVENT",  "MWIGAIN")], as.numeric)
-#   data[ , c("MWINF",  "MWVENT",  "MWIGAIN")] <- data[ , c("MWINF",  "MWVENT",  "MWIGAIN")]*100
-  mdata <- melt(data, id=c("DCK",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("cooling", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QINF",  "QVENT",  "QGINT",	"QSOL", "MWINF",  "MWVENT",  "MWIGAIN"))
 }
 
 data.single.balance.heating.new <- function (data) {
-#   data[, c("MWINF",  "MWVENT",  "MWIGAIN")] <- sapply(data[, c("MWINF",  "MWVENT",  "MWIGAIN")], as.numeric)
-  #   data[ , c("MWINF",  "MWVENT",  "MWIGAIN")] <- data[ , c("MWINF",  "MWVENT",  "MWIGAIN")]*100
-  mdata <- melt(data, id=c("SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("heating", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QVENTS",  "QSOLAR",  "QINTS", "QVENTL",  "QINTL"))
+  data.melt$value <- data.melt$value
+  data.melt
 }
 
 data.single.balance.cooling.new <- function (data) {
-#   data[, c("MWINF",  "MWVENT",  "MWIGAIN")] <- sapply(data[, c("MWINF",  "MWVENT",  "MWIGAIN")], as.numeric)
-  #   data[ , c("MWINF",  "MWVENT",  "MWIGAIN")] <- data[ , c("MWINF",  "MWVENT",  "MWIGAIN")]*100
-  mdata <- melt(data, id=c("SITUATION"), na.rm = TRUE)
+  mdata <- melt(data, id=c("DCK",  "BUI",  "FILENAME",  "TYPE",  "INSU_THICKNESS",  "SLOPE",  "AZIMUTH",  "ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
   data.melt <- subset(mdata, grepl("cooling", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QVENTS",  "QSOLAR",  "QINTS", "QVENTL",  "QINTL"))
+  data.melt$value <- data.melt$value
+  data.melt
+}
+
+data.single.balance.heating.adaptive <- function (data) {
+  mdata <- melt(data, id=c("ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  data.melt <- subset(mdata, PERIOD == "Annual" & grepl("heating", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QVENTS",  "QSOLAR",  "QINTS", "QVENTL",  "QINTL"))
+  data.melt$value <- data.melt$value/36
+  data.melt
+}
+
+data.single.balance.cooling.adaptive <- function (data) {
+  mdata <- melt(data, id=c("ID",  "PERIOD",  "SITUATION"), na.rm = TRUE)
+  data.melt <- subset(mdata, PERIOD == "Annual" & grepl("cooling", mdata$SITUATION) & mdata$variable %in% c("QTRANS",  "QVENTS",  "QSOLAR",  "QINTS", "QVENTL",  "QINTL"))
+  data.melt$value <- data.melt$value/36
+  data.melt
 }
 
 data.plot <- function (data, type) {
@@ -403,6 +420,8 @@ data.plot <- function (data, type) {
   if (type=="balance.cooling") data.melt <- data.single.balance.cooling(data)
   if (type=="balance.heating.new") data.melt <- data.single.balance.heating.new(data)
   if (type=="balance.cooling.new") data.melt <- data.single.balance.cooling.new(data)
+  if (type=="balance.heating.adaptive") data.melt <- data.single.balance.heating.adaptive(data)
+  if (type=="balance.cooling.adaptive") data.melt <- data.single.balance.cooling.adaptive(data)
   
   data.melt
 }
@@ -568,7 +587,7 @@ subplot.heat <- function (data, legend.range=NULL) {
   p <- p + theme_full()
 }
 
-singleplot.heat <- function (data, type, range) {
+singleplot.heat <- function (data, location, type, range) {
   
   data.melt <- data.plot(data, type)
   
@@ -617,7 +636,7 @@ singleplot.heat <- function (data, type, range) {
   popViewport()
 }
 
-singleplot.heat.new <- function (data, type, range) {
+singleplot.heat.new <- function (data, location, type, range) {
   
   
   data.melt <- data.plot(data, type)
@@ -646,13 +665,13 @@ singleplot.heat.new <- function (data, type, range) {
   {situation <- "heating or humidification"}
   if (grepl("cooling or dehumidification", situation) == TRUE) 
   {situation <- "cooling or dehumidification"}
-  title <- grid.text(label=situation, x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=default_fontsize, col="black"))
+  title <- grid.text(label=paste(location, situation), x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=default_fontsize, col="black"))
   
   grid.newpage()
   pushViewport(
     viewport(
       layout=grid.layout(2, 2,
-                         widths=unit(c(8/16, 8/16),
+                         widths=unit(c(12/16, 4/16),
                                      c("npc", "npc")),
                          heights=unit(c(2, 10),
                                       c("line", "null")))))
@@ -681,7 +700,7 @@ subplot.moisture <- function (data, legend.range) {
   p <- p + theme_full()
 }
 
-singleplot.moisture <- function (data, type, legend.range) {
+singleplot.moisture <- function (data, location, type, legend.range) {
   data.melt <- data.plot(data, type)
   
   data.m.load <- subset(data.melt, variable %in% c("MWINF",  "MWVENT",  "MWIGAIN") & grepl("load", SITUATION))
@@ -728,7 +747,7 @@ singleplot.moisture <- function (data, type, legend.range) {
   popViewport()
 }
 
-singleplot.moisture.new <- function (data, type, legend.range) {
+singleplot.moisture.new <- function (data, location, type, legend.range) {
   data.melt <- data.plot(data, type)
   
   data.m.load <- subset(data.melt, variable %in% c("QVENTL",  "QINTL") & grepl("load", SITUATION))
@@ -755,13 +774,13 @@ singleplot.moisture.new <- function (data, type, legend.range) {
   {situation <- "heating or humidification"}
   if (grepl("cooling or dehumidification", situation) == TRUE) 
   {situation <- "cooling or dehumidification"}
-  title <- grid.text(label=situation, x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=default_fontsize, col="black"))
+  title <- grid.text(label=paste(location, situation), x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=default_fontsize, col="black"))
   
   grid.newpage()
   pushViewport(
     viewport(
       layout=grid.layout(2, 2,
-                         widths=unit(c(8/16, 8/16),
+                         widths=unit(c(12/16, 4/16),
                                      c("npc", "npc")),
                          heights=unit(c(2, 10),
                                       c("line", "null")))))
@@ -777,7 +796,7 @@ singleplot.moisture.new <- function (data, type, legend.range) {
   popViewport()
 }
 
-singleplot.balance <- function (data, type, legend.range) {
+singleplot.balance <- function (data, location, type, legend.range) {
   data.melt <- data.plot(data, type)
   
   data.q.load <- subset(data.melt, variable %in% c("QTRANS",  "QINF",  "QVENT",  "QGINT",  "QSOL") & grepl("load", SITUATION))
@@ -877,107 +896,206 @@ singleplot.balance <- function (data, type, legend.range) {
 }
 
 
-singleplot.balance.new <- function (data, type, legend.range) {
+# singleplot.balance.new <- function (data, location, type, legend.range) {
+#   data.melt <- data.plot(data, type)
+#   
+#   data.q.load <- subset(data.melt, grepl("load", SITUATION))
+#   data.q.relief <- subset(data.melt, grepl("relief", SITUATION))
+#   #   data.m.load <- subset(data.melt, variable %in% c("QVENTL",  "QINTL") & grepl("load", SITUATION))
+#   #   data.m.relief <- subset(data.melt, variable %in% c("QVENTL",  "QINTL") & grepl("relief", SITUATION))
+#   
+#   #   p1 <- ggplot(data, aes(x=variable, y=as.numeric(value), fill=paste(situation,variable))) +
+#   #     geom_bar(stat="identity",position="identity") +
+#   #     geom_hline(yintercept=0) + 
+#   #     labs(x = NULL, y = "energy gain and loss [ kWh ]") + 
+#   #     scale_y_continuous(limits=legend.range, breaks=500*c(-7:7)) +
+#   #     guides(fill = guide_legend(ncol = 4, byrow = TRUE)) +
+#   #     scale_x_discrete(labels=c("transmission \nenergy gain",  "infiltration \nenergy gain",  "ventilation \nenergy gain",  "internal \nenergy gain",  "solar \nenergy gain", "infiltration \nwater gain",  "ventilation \nwater gain",  "internal \nwater gain")) 
+#   # #     scale_fill_discrete(name="",
+#   # #                         labels=c("transmission energy gain",  "infiltration energy gain",  "ventilation energy gain",  "internal energy gain",  "solar energy gain", "infiltration water gain",  "ventilation water gain",  "internal water gain"))
+#   # 
+#   # #     coord_fixed(ratio = 1/20)
+#   #   p1 <- p1 + theme.balance()
+#   
+#   plot <- ggplot() +
+#     geom_bar(data = data.q.load, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#FC98A2")) +
+#     geom_bar(data = data.q.relief, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#00ADEF")) +
+#     #     geom_bar(data = data.m.load, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#9499DB")) +
+#     #     geom_bar(data = data.m.relief, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#FC98A2")) +
+#     geom_hline(aes(yintercept=0), size=1, color="grey20") + 
+#     geom_vline(aes(xintercept=4.5), size=0.5, color="grey30", linetype="dotted") + 
+#     geom_text(data=data.q.load, aes(label=round(as.numeric(value), digits = 0), x=variable, y=as.numeric(value)), size=2.5, vjust=-0.5, color="grey20") + 
+#     geom_text(data=data.q.relief, aes(label=round(as.numeric(value), digits = 0), x=variable, y=as.numeric(value)), size=2.5, vjust=1.5, color="grey20") + 
+#     #     geom_text(data=data.m.load, aes(label=round(as.numeric(value), digits = 2), x=variable, y=as.numeric(value)), size=2, vjust=-0.5, color="grey20") + 
+#     #     geom_text(data=data.m.relief, aes(label=round(as.numeric(value), digits = 2), x=variable, y=as.numeric(value)), size=2, vjust=1.5, color="grey20") + 
+#     labs(x = NULL) +     
+#     scale_x_discrete(labels=c("transmission",  "ventilation \nsensible",  "solar",  "internal \nsensible", "ventilation \nlatent",  "internal \nlatent")) +
+#     scale_y_continuous(limits=legend.range,           
+#                        breaks=500*c(-7:7),
+#                        labels=5*c(-7:7)) +
+#     theme.balance()+
+#     scale_fill_identity()
+#   p1 <- plot + labs(x = "energy gain and loss [ kWh ]")
+#   p2 <- plot + labs(x = "moisture gain and loss [ kg ]")
+#   
+#   #extract gtable
+#   g1<-ggplot_gtable(ggplot_build(p1))
+#   g2<-ggplot_gtable(ggplot_build(p2))
+#   
+#   #overlap the panel of the 2nd plot on that of the 1st plot
+#   
+#   pp<-c(subset(g1$layout, name=="panel", se=t:r))
+#   g<-gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, 
+#                      pp$l)
+#   
+#   ia <- which(g2$layout$name == "axis-l")
+#   ga <- g2$grobs[[ia]]
+#   ax <- ga$children[[2]]
+#   ax$widths <- rev(ax$widths)
+#   ax$grobs <- rev(ax$grobs)
+#   #   ax$grobs[[1]]$x <- ax$grobs[[1]]$x - unit(1, "npc") + unit(0.15, "cm")
+#   g <- gtable_add_cols(g, g2$widths[g2$layout[ia, ]$l], length(g$widths) - 1)
+#   g <- gtable_add_grob(g, ax, pp$t, length(g$widths) - 1, pp$b)
+#   
+#   iylab <- which(g2$layout$name == "ylab")
+#   gylab <- g2$grobs[[iylab]]
+#   g <- gtable_add_cols(g, g2$widths[g2$layout[iylab, ]$l], length(g$widths) - 1)
+#   g <- gtable_add_grob(g, gylab, pp$t, length(g$widths) - 1, pp$b)
+#   
+#   
+#   situation <- data.melt$SITUATION[1]
+#   #   period <- data.melt$PERIOD[1]
+#   #   filename <- data.melt$FILENAME[1]
+#   if (grepl("heating or humidification", situation) == TRUE) 
+#   {situation <- "\nheating or humidification"}
+#   if (grepl("cooling or dehumidification", situation) == TRUE) 
+#   {situation <- "\ncooling or dehumidification"}
+#   title <- grid.text(label=paste(location, situation), x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=title_fontsize, col="black"))
+#   
+#   grid.newpage()
+#   pushViewport(
+#     viewport(
+#       layout=grid.layout(2, 2,
+#                          widths=unit(c(8/16, 8/16),
+#                                      c("npc", "npc")),
+#                          heights=unit(c(2, 10),
+#                                       c("line", "null")))))
+#   pushViewport(viewport(layout.pos.col=1, layout.pos.row=1))
+#   grid.draw(title)
+#   popViewport()
+#   pushViewport(viewport(layout.pos.col=2, layout.pos.row=1))
+#   #   print(guide, newpage=FALSE)
+#   exampleplot.balance()
+#   popViewport()
+#   pushViewport(viewport(layout.pos.col=1:2, layout.pos.row=2))
+#   grid.draw(g)
+#   popViewport()
+#   
+#   #   grid.arrange(arrangeGrob(title,
+#   #                            guide,
+#   #                            ncol=2, nrow=1, widths=c(8, 8)),
+#   #                          arrangeGrob(g), 
+#   #                          nrow=2, heights=c(1, 11))
+#   
+# }
+
+# singleplot.balance.new <- function (data, location, type, legend.range) {
+#   data.melt <- data.plot(data, type)
+#   
+#   data.q.load <- subset(data.melt, grepl("load", SITUATION))
+#   data.q.relief <- subset(data.melt, grepl("relief", SITUATION))
+#   
+#   plot <- ggplot() +
+#     geom_bar(data = data.q.load, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#FC98A2")) +
+#     geom_bar(data = data.q.relief, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#00ADEF")) +
+#     geom_hline(aes(yintercept=0), size=1, color="grey20") + 
+#     geom_text(data=data.q.load, aes(label=round(as.numeric(value), digits = 0), x=variable, y=as.numeric(value)), size=2.5, vjust=-0.5, color="grey20") + 
+#     geom_text(data=data.q.relief, aes(label=round(as.numeric(value), digits = 0), x=variable, y=as.numeric(value)), size=2.5, vjust=1.5, color="grey20") + 
+#     labs(x = NULL) +     
+#     scale_x_discrete(labels=c("trans-\nmission",  "sensible \nventilation",  "solar \ngains",  "sensible \ninternal", "latent \nventilation",  "latent \ninternal")) +
+#     scale_y_continuous(limits=1000*c(-5,5),           
+#                        breaks=1000*c(-5:5),
+#                        labels=1000*c(-5:5)) +
+#     scale_fill_identity() +
+#     labs(y = expression(paste("share of energy demand [ kWh/", "a ]"))) 
+#   
+#   plot <- theme_paper(plot)
+#   
+#   
+#   situation <- data.melt$SITUATION[1]
+#   if (grepl("heating or humidification", situation) == TRUE) 
+#   {situation <- "\nheating or humidification"}
+#   if (grepl("cooling or dehumidification", situation) == TRUE) 
+#   {situation <- "\ncooling or dehumidification"}
+#   title <- grid.text(label=paste(location, situation), x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=title_fontsize, col="black"))
+#   
+#   grid.newpage()
+#   pushViewport(
+#     viewport(
+#       layout=grid.layout(2, 2,
+#                          widths=unit(c(12/16, 4/16),
+#                                      c("npc", "npc")),
+#                          heights=unit(c(2, 10),
+#                                       c("line", "null")))))
+#   pushViewport(viewport(layout.pos.col=1, layout.pos.row=1))
+#   grid.draw(title)
+#   popViewport()
+#   pushViewport(viewport(layout.pos.col=2, layout.pos.row=1))
+#   exampleplot.balance()
+#   popViewport()
+#   pushViewport(viewport(layout.pos.col=1:2, layout.pos.row=2))
+#   print(plot, newpage=FALSE)
+#   popViewport()
+#   
+# }
+
+singleplot.balance.new <- function (data, location, type, legend.range, subtitle=NULL) {
   data.melt <- data.plot(data, type)
+  
+  summe <- round(sum(data.melt$value), 1)
   
   data.q.load <- subset(data.melt, grepl("load", SITUATION))
   data.q.relief <- subset(data.melt, grepl("relief", SITUATION))
-#   data.m.load <- subset(data.melt, variable %in% c("QVENTL",  "QINTL") & grepl("load", SITUATION))
-#   data.m.relief <- subset(data.melt, variable %in% c("QVENTL",  "QINTL") & grepl("relief", SITUATION))
-  
-  #   p1 <- ggplot(data, aes(x=variable, y=as.numeric(value), fill=paste(situation,variable))) +
-  #     geom_bar(stat="identity",position="identity") +
-  #     geom_hline(yintercept=0) + 
-  #     labs(x = NULL, y = "energy gain and loss [ kWh ]") + 
-  #     scale_y_continuous(limits=legend.range, breaks=500*c(-7:7)) +
-  #     guides(fill = guide_legend(ncol = 4, byrow = TRUE)) +
-  #     scale_x_discrete(labels=c("transmission \nenergy gain",  "infiltration \nenergy gain",  "ventilation \nenergy gain",  "internal \nenergy gain",  "solar \nenergy gain", "infiltration \nwater gain",  "ventilation \nwater gain",  "internal \nwater gain")) 
-  # #     scale_fill_discrete(name="",
-  # #                         labels=c("transmission energy gain",  "infiltration energy gain",  "ventilation energy gain",  "internal energy gain",  "solar energy gain", "infiltration water gain",  "ventilation water gain",  "internal water gain"))
-  # 
-  # #     coord_fixed(ratio = 1/20)
-  #   p1 <- p1 + theme.balance()
   
   plot <- ggplot() +
     geom_bar(data = data.q.load, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#FC98A2")) +
     geom_bar(data = data.q.relief, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#00ADEF")) +
-#     geom_bar(data = data.m.load, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#9499DB")) +
-#     geom_bar(data = data.m.relief, stat="identity",position="identity", width=.5, aes(x= variable, y=as.numeric(value), fill="#FC98A2")) +
     geom_hline(aes(yintercept=0), size=1, color="grey20") + 
-    geom_vline(aes(xintercept=4.5), size=0.5, color="grey30", linetype="dotted") + 
-    geom_text(data=data.q.load, aes(label=round(as.numeric(value), digits = 0), x=variable, y=as.numeric(value)), size=2.5, vjust=-0.5, color="grey20") + 
-    geom_text(data=data.q.relief, aes(label=round(as.numeric(value), digits = 0), x=variable, y=as.numeric(value)), size=2.5, vjust=1.5, color="grey20") + 
-#     geom_text(data=data.m.load, aes(label=round(as.numeric(value), digits = 2), x=variable, y=as.numeric(value)), size=2, vjust=-0.5, color="grey20") + 
-#     geom_text(data=data.m.relief, aes(label=round(as.numeric(value), digits = 2), x=variable, y=as.numeric(value)), size=2, vjust=1.5, color="grey20") + 
+    geom_text(data=data.q.load, aes(label=round(as.numeric(value), digits = 1), x=variable, y=as.numeric(value)), size=2.5, vjust=-0.5, color="grey20") + 
+    geom_text(data=data.q.relief, aes(label=round(as.numeric(value), digits = 1), x=variable, y=as.numeric(value)), size=2.5, vjust=1.5, color="grey20") + 
     labs(x = NULL) +     
-    scale_x_discrete(labels=c("transmission",  "ventilation \nsensible",  "solar",  "internal \nsensible", "ventilation \nlatent",  "internal \nlatent")) +
-    scale_y_continuous(limits=legend.range,           
-                       breaks=500*c(-7:7),
-                       labels=5*c(-7:7)) +
-    theme.balance()+
-    scale_fill_identity()
-  p1 <- plot + labs(x = "energy gain and loss [ kWh ]")
-  p2 <- plot + labs(x = "moisture gain and loss [ kg ]")
+    scale_x_discrete(labels=c("trans-\nmission",  "sensible \nventilation",  "solar \ngains",  "sensible \ninternal", "latent \nventilation",  "latent \ninternal")) +
+    scale_y_continuous(limits=20*c(-6,6),           
+                       breaks=20*c(-6:6),
+                       labels=20*c(-6:6)) +
+    scale_fill_identity() +
+    labs(y = expression(paste("share of energy demand [ kWh/", m^{2}, "a ]"))) 
   
-  #extract gtable
-  g1<-ggplot_gtable(ggplot_build(p1))
-  g2<-ggplot_gtable(ggplot_build(p2))
-  
-  #overlap the panel of the 2nd plot on that of the 1st plot
-  
-  pp<-c(subset(g1$layout, name=="panel", se=t:r))
-  g<-gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, 
-                     pp$l)
-  
-  ia <- which(g2$layout$name == "axis-l")
-  ga <- g2$grobs[[ia]]
-  ax <- ga$children[[2]]
-  ax$widths <- rev(ax$widths)
-  ax$grobs <- rev(ax$grobs)
-#   ax$grobs[[1]]$x <- ax$grobs[[1]]$x - unit(1, "npc") + unit(0.15, "cm")
-  g <- gtable_add_cols(g, g2$widths[g2$layout[ia, ]$l], length(g$widths) - 1)
-  g <- gtable_add_grob(g, ax, pp$t, length(g$widths) - 1, pp$b)
-  
-  iylab <- which(g2$layout$name == "ylab")
-  gylab <- g2$grobs[[iylab]]
-  g <- gtable_add_cols(g, g2$widths[g2$layout[iylab, ]$l], length(g$widths) - 1)
-  g <- gtable_add_grob(g, gylab, pp$t, length(g$widths) - 1, pp$b)
+  plot <- theme_paper(plot)
   
   
   situation <- data.melt$SITUATION[1]
-#   period <- data.melt$PERIOD[1]
-#   filename <- data.melt$FILENAME[1]
   if (grepl("heating or humidification", situation) == TRUE) 
   {situation <- "\nheating or humidification"}
   if (grepl("cooling or dehumidification", situation) == TRUE) 
   {situation <- "\ncooling or dehumidification"}
-  title <- grid.text(label=situation, x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=title_fontsize, col="black"))
+#   title <- grid.text(label=expression(paste(location, subtitle, situation, " (sum:", summe, "kWh/", m^{2}, "a)", sep="")), x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=title_fontsize, col="black"))
+  title <- grid.text(label=paste(location, subtitle, situation, " (sum=", summe, ")", sep=""), x=0.1, y=0.9, just="left", vjust = 1, gp=gpar(fontsize=title_fontsize, col="black"))
   
   grid.newpage()
-  pushViewport(
-    viewport(
-      layout=grid.layout(2, 2,
-                         widths=unit(c(8/16, 8/16),
-                                     c("npc", "npc")),
-                         heights=unit(c(2, 10),
-                                      c("line", "null")))))
-  pushViewport(viewport(layout.pos.col=1, layout.pos.row=1))
+  
+  vp <- viewport()
+  pushViewport(vp)
+  print(plot, newpage=FALSE)
+  vp <- viewport(x = unit(0.07, "npc"), y = unit(3, "line"),
+                 width = unit(0.9, "npc"), height = unit(3, "line"), just=c("left", "bottom"))
+  pushViewport(vp)
   grid.draw(title)
   popViewport()
-  pushViewport(viewport(layout.pos.col=2, layout.pos.row=1))
-  #   print(guide, newpage=FALSE)
+  vp <- viewport(x = unit(1, "npc"), y = unit(1, "npc") - unit(1.5, "line"),
+                 width = unit(0.3, "npc"), height = unit(2, "line"), just=c("right", "top"))
+  pushViewport(vp)
   exampleplot.balance()
-  popViewport()
-  pushViewport(viewport(layout.pos.col=1:2, layout.pos.row=2))
-  grid.draw(g)
-  popViewport()
-  
-  #   grid.arrange(arrangeGrob(title,
-  #                            guide,
-  #                            ncol=2, nrow=1, widths=c(8, 8)),
-  #                          arrangeGrob(g), 
-  #                          nrow=2, heights=c(1, 11))
-  
 }
 
 subplot.solar <- function (data, legend.range) {
@@ -1062,7 +1180,7 @@ multiline_text <- function(label){
                               core.just = "center"))
 }
 
-singleplot.solar <- function (data, legend.range) {
+singleplot.solar <- function (data, location, legend.range) {
   row.max <- which.max(data$QE)
   slope <- data$SLOPE[row.max]
   azimuth <- data$AZIMUTH[row.max]
@@ -1184,8 +1302,8 @@ exampleplot.solar <- function () {
 }
 
 exampleplot.balance <- function () {
-  polygon <- grid.polygon(x=c(.02, .05, .08, .02, .05, .08), y=c(.5, .2, .5, .6, .9, .6), id=rep(1:2, each=3), gp=gpar(fill=c("#00ADEF", "#FC98A2"), col=NA))
-  text <- grid.text(c("relief", "load"), 0.1, c(0.4, 0.75), just = "centre", hjust=0, gp=gpar(fontsize=default_fontsize, col="black"))
+  polygon <- grid.polygon(x=c(.02, .08, .14, .02, .08, .14), y=c(.5, .2, .5, .6, .9, .6), id=rep(1:2, each=3), gp=gpar(fill=c("#00ADEF", "#FC98A2"), col=NA))
+  text <- grid.text(c("relief", "load"), 0.2, c(0.4, 0.75), just = "centre", hjust=0, gp=gpar(fontsize=default_fontsize, col="black"))
   grid.draw(polygon)
   grid.draw(text)
 }
@@ -1218,27 +1336,29 @@ subplot <- function (data, type, legend.range=NULL) {
   p <- plotType(data, type, legend.range)
 }
 
-singleplot <- function (data, type, legend.range) {
+singleplot <- function (data, location, type, legend.range, subtitle) {
 #   data is melt
   
-  plotType <- function (data, type, legend.range){
+  plotType <- function (data, location, type, legend.range){
     switch (type,
-            solar = singleplot.solar(data, legend.range),
-            heat.heating = singleplot.heat(data, type, legend.range),
-            heat.cooling = singleplot.heat(data, type, legend.range),
-            heat.heating.new = singleplot.heat.new(data, type, legend.range),
-            heat.cooling.new = singleplot.heat.new(data, type, legend.range),
-            moisture.heating = singleplot.moisture(data, type, legend.range),
-            moisture.cooling = singleplot.moisture(data, type, legend.range),
-            moisture.heating.new = singleplot.moisture.new(data, type, legend.range),
-            moisture.cooling.new = singleplot.moisture.new(data, type, legend.range),
-            balance.heating = singleplot.balance(data, type, legend.range),
-            balance.cooling = singleplot.balance(data, type, legend.range),
-            balance.heating.new = singleplot.balance.new(data, type, legend.range),
-            balance.cooling.new = singleplot.balance.new(data, type, legend.range))
+            solar = singleplot.solar(data, location, legend.range),
+            heat.heating = singleplot.heat(data, location, type, legend.range),
+            heat.cooling = singleplot.heat(data, location, type, legend.range),
+            heat.heating.new = singleplot.heat.new(data, location, type, legend.range),
+            heat.cooling.new = singleplot.heat.new(data, location, type, legend.range),
+            moisture.heating = singleplot.moisture(data, location, type, legend.range),
+            moisture.cooling = singleplot.moisture(data, location, type, legend.range),
+            moisture.heating.new = singleplot.moisture.new(data, location, type, legend.range),
+            moisture.cooling.new = singleplot.moisture.new(data, location, type, legend.range),
+            balance.heating = singleplot.balance(data, location, type, legend.range),
+            balance.cooling = singleplot.balance(data, location, type, legend.range),
+            balance.heating.new = singleplot.balance.new(data, location, type, legend.range, subtitle),
+            balance.cooling.new = singleplot.balance.new(data, location, type, legend.range, subtitle),
+            balance.heating.adaptive = singleplot.balance.new(data, location, type, legend.range, subtitle),
+            balance.cooling.adaptive = singleplot.balance.new(data, location, type, legend.range, subtitle))
   }
   
-  p <- plotType(data, type, legend.range)
+  p <- plotType(data, location, type, legend.range)
 }
 
 plot.example <- function(data, type, legend.range){
@@ -1371,12 +1491,12 @@ save.map <- function (data, type, locationNames, regions, high = FALSE, periods=
   dev.off() 
 }
 
-plot.single <- function (data, type, legend.range=NULL) {
+plot.single <- function (data, location, type, legend.range=NULL, subtitle=NULL) {
   if (is.null(legend.range)) 
     range <- get.range(data, type)
   else
     range <- legend.range
-  singleplot(data, type, range)
+  singleplot(data, location, type, range, subtitle)
 }
 
 save.batch <- function (locations, types, periods) {
@@ -1398,7 +1518,7 @@ save.batch <- function (locations, types, periods) {
 
 # save.batch(locations=c('DEU_Berlin.103840_IWEC', 'DEU_Dusseldorf.104000_IWEC'), types=c('solar', 'heat.heating', 'heat.cooling', 'moisture.heating', 'moisture.cooling', 'balance.heating', 'balance.cooling'), period='Annual')
 
-save.single <- function (data, type, legend.range=NULL, file="singlePlot", format = "png", width=16, height=12, units="cm", dpi=300) {
+save.single <- function (data, location, type, legend.range=NULL, subtitle=NULL, file="singlePlot", format = "png", width=16, height=12, units="cm", dpi=300) {
   Cairo(file=paste(file, format, sep="."), 
         type=format,
         units=units, 
@@ -1408,7 +1528,7 @@ save.single <- function (data, type, legend.range=NULL, file="singlePlot", forma
         dpi=dpi,
         bg="white")
 # data is not melt   
-  p <- plot.single(data, type, legend.range)
+  p <- plot.single(data, location, type, legend.range, subtitle)
   print (p)
   
   dev.off()
@@ -1460,6 +1580,7 @@ p3 <- grid.arrange(arrangeGrob(p + theme(legend.position="none")),
 # locationTable <- data.read("C:\\Users\\ilkyilu\\Documents\\Visual Studio 2013\\Projects\\RPlotForm\\RPlotForm\\data\\Orte.txt", FALSE)
 # balanceTable <- data.read("C:\\Users\\ilkyilu\\Documents\\Visual Studio 2013\\Projects\\RPlotForm\\RPlotForm\\data\\CELL-template_A000_anual_output_summary.plt")
 # solarTable <- data.read("C:\\Users\\ilkyilu\\Documents\\Visual Studio 2013\\Projects\\RPlotForm\\RPlotForm\\data\\PV-MuC-template_sum_of_power_output.sum")
+
 
 # data.single <- data.subset(balanceTable, "DEU_Berlin.103840_IWEC", "Annual")
 # legend.range <- get.range(data.single, "balance.cooling")
@@ -1832,8 +1953,6 @@ save.epw <- function(data, variable, type, range = 168, base, file="singlePlot",
   dev.off()
 }
 
-setwd("D:/Adaptive/Plot")
-
 plot.adaptive <- function (filename){
   data <- data.read(paste("D:/Adaptive/", filename, ".epw_Optimal_InsuThickness_hourly.txt", sep=""), FALSE)
   
@@ -1870,62 +1989,62 @@ plot.epw.batch <- function (filename){
   save.epw(data, "enthalpy", "boxplot", base=base, file=paste(filename, "_enthalpy_boxplot", sep=""))
   save.epw(data, "enthalpy", "ydensity", base=base, file=paste(filename, "_enthalpy_ydensity", sep=""))
 }
-
-plot.adaptive("CHN_Beijing.Beijing.545110_IWEC")
-plot.adaptive("CHN_Chongqing.Chongqing.Shapingba.575160_SWERA")
-plot.adaptive("CHN_Fujian.Xiamen.591340_CSWD")
-plot.adaptive("CHN_Gansu.Lanzhou.528890_IWEC")
-plot.adaptive("CHN_Guangdong.Guangzhou.592870_IWEC")
-plot.adaptive("CHN_Guangdong.Shenzhen.594930_SWERA")
-plot.adaptive("CHN_Guangxi.Zhuang.Nanning.594310_CSWD")
-plot.adaptive("CHN_Hebei.Leting.545390_CSWD")
-plot.adaptive("CHN_Heilongjiang.Harbin.509530_IWEC")
-plot.adaptive("CHN_Henan.Zhengzhou.570830_CSWD")
-plot.adaptive("CHN_Hubei.Wuhan.574940_CSWD")
-plot.adaptive("CHN_Hunan.Changsha.576870_SWERA")
-plot.adaptive("CHN_Jiangsu.Nanjing.582380_CSWD")
-plot.adaptive("CHN_Liaoning.Dalian.546620_SWERA")
-plot.adaptive("CHN_Liaoning.Shenyang.543420_CSWD")
-plot.adaptive("CHN_Nei.Mongol.Hohhot.534630_CSWD")
-plot.adaptive("CHN_Qinghai.Xining.528660_CSWD")
-plot.adaptive("CHN_Shaanxi.Xian.570360_CSWD")
-plot.adaptive("CHN_Shanghai.Shanghai.583670_IWEC")
-plot.adaptive("CHN_Shanxi.Taiyuan.537720_CSWD")
-plot.adaptive("CHN_Sichuan.Chengdu.562940_SWERA")
-plot.adaptive("CHN_Tianjin.Tianjin.545270_CSWD")
-plot.adaptive("CHN_Tibet.Lhasa.555910_SWERA")
-plot.adaptive("CHN_Xinjiang.Urgur.Urumqi.514630_IWEC")
-plot.adaptive("CHN_Xinjiang.Uygur.Yining.514310_CSWD")
-plot.adaptive("CHN_Yunnan.Kunming.567780_IWEC")
-
-plot.epw.batch("CHN_Beijing.Beijing.545110_IWEC")
-plot.epw.batch("CHN_Chongqing.Chongqing.Shapingba.575160_SWERA")
-plot.epw.batch("CHN_Fujian.Xiamen.591340_CSWD")
-plot.epw.batch("CHN_Gansu.Lanzhou.528890_IWEC")
-plot.epw.batch("CHN_Guangdong.Guangzhou.592870_IWEC")
-plot.epw.batch("CHN_Guangdong.Shenzhen.594930_SWERA")
-plot.epw.batch("CHN_Guangxi.Zhuang.Nanning.594310_CSWD")
-plot.epw.batch("CHN_Hebei.Leting.545390_CSWD")
-plot.epw.batch("CHN_Heilongjiang.Harbin.509530_IWEC")
-plot.epw.batch("CHN_Henan.Zhengzhou.570830_CSWD")
-plot.epw.batch("CHN_Hubei.Wuhan.574940_CSWD")
-plot.epw.batch("CHN_Hunan.Changsha.576870_SWERA")
-plot.epw.batch("CHN_Jiangsu.Nanjing.582380_CSWD")
-plot.epw.batch("CHN_Liaoning.Dalian.546620_SWERA")
-plot.epw.batch("CHN_Liaoning.Shenyang.543420_CSWD")
-plot.epw.batch("CHN_Nei.Mongol.Hohhot.534630_CSWD")
-plot.epw.batch("CHN_Qinghai.Xining.528660_CSWD")
-plot.epw.batch("CHN_Shaanxi.Xian.570360_CSWD")
-plot.epw.batch("CHN_Shanghai.Shanghai.583670_IWEC")
-plot.epw.batch("CHN_Shanxi.Taiyuan.537720_CSWD")
-plot.epw.batch("CHN_Sichuan.Chengdu.562940_SWERA")
-plot.epw.batch("CHN_Tianjin.Tianjin.545270_CSWD")
-plot.epw.batch("CHN_Tibet.Lhasa.555910_SWERA")
-plot.epw.batch("CHN_Xinjiang.Urgur.Urumqi.514630_IWEC")
-plot.epw.batch("CHN_Xinjiang.Uygur.Yining.514310_CSWD")
-plot.epw.batch("CHN_Yunnan.Kunming.567780_IWEC")
-
-filename <- "CHN_Beijing.Beijing.545110_IWEC"
+# 
+# plot.adaptive("CHN_Beijing.Beijing.545110_IWEC")
+# plot.adaptive("CHN_Chongqing.Chongqing.Shapingba.575160_SWERA")
+# plot.adaptive("CHN_Fujian.Xiamen.591340_CSWD")
+# plot.adaptive("CHN_Gansu.Lanzhou.528890_IWEC")
+# plot.adaptive("CHN_Guangdong.Guangzhou.592870_IWEC")
+# plot.adaptive("CHN_Guangdong.Shenzhen.594930_SWERA")
+# plot.adaptive("CHN_Guangxi.Zhuang.Nanning.594310_CSWD")
+# plot.adaptive("CHN_Hebei.Leting.545390_CSWD")
+# plot.adaptive("CHN_Heilongjiang.Harbin.509530_IWEC")
+# plot.adaptive("CHN_Henan.Zhengzhou.570830_CSWD")
+# plot.adaptive("CHN_Hubei.Wuhan.574940_CSWD")
+# plot.adaptive("CHN_Hunan.Changsha.576870_SWERA")
+# plot.adaptive("CHN_Jiangsu.Nanjing.582380_CSWD")
+# plot.adaptive("CHN_Liaoning.Dalian.546620_SWERA")
+# plot.adaptive("CHN_Liaoning.Shenyang.543420_CSWD")
+# plot.adaptive("CHN_Nei.Mongol.Hohhot.534630_CSWD")
+# plot.adaptive("CHN_Qinghai.Xining.528660_CSWD")
+# plot.adaptive("CHN_Shaanxi.Xian.570360_CSWD")
+# plot.adaptive("CHN_Shanghai.Shanghai.583670_IWEC")
+# plot.adaptive("CHN_Shanxi.Taiyuan.537720_CSWD")
+# plot.adaptive("CHN_Sichuan.Chengdu.562940_SWERA")
+# plot.adaptive("CHN_Tianjin.Tianjin.545270_CSWD")
+# plot.adaptive("CHN_Tibet.Lhasa.555910_SWERA")
+# plot.adaptive("CHN_Xinjiang.Urgur.Urumqi.514630_IWEC")
+# plot.adaptive("CHN_Xinjiang.Uygur.Yining.514310_CSWD")
+# plot.adaptive("CHN_Yunnan.Kunming.567780_IWEC")
+# 
+# plot.epw.batch("CHN_Beijing.Beijing.545110_IWEC")
+# plot.epw.batch("CHN_Chongqing.Chongqing.Shapingba.575160_SWERA")
+# plot.epw.batch("CHN_Fujian.Xiamen.591340_CSWD")
+# plot.epw.batch("CHN_Gansu.Lanzhou.528890_IWEC")
+# plot.epw.batch("CHN_Guangdong.Guangzhou.592870_IWEC")
+# plot.epw.batch("CHN_Guangdong.Shenzhen.594930_SWERA")
+# plot.epw.batch("CHN_Guangxi.Zhuang.Nanning.594310_CSWD")
+# plot.epw.batch("CHN_Hebei.Leting.545390_CSWD")
+# plot.epw.batch("CHN_Heilongjiang.Harbin.509530_IWEC")
+# plot.epw.batch("CHN_Henan.Zhengzhou.570830_CSWD")
+# plot.epw.batch("CHN_Hubei.Wuhan.574940_CSWD")
+# plot.epw.batch("CHN_Hunan.Changsha.576870_SWERA")
+# plot.epw.batch("CHN_Jiangsu.Nanjing.582380_CSWD")
+# plot.epw.batch("CHN_Liaoning.Dalian.546620_SWERA")
+# plot.epw.batch("CHN_Liaoning.Shenyang.543420_CSWD")
+# plot.epw.batch("CHN_Nei.Mongol.Hohhot.534630_CSWD")
+# plot.epw.batch("CHN_Qinghai.Xining.528660_CSWD")
+# plot.epw.batch("CHN_Shaanxi.Xian.570360_CSWD")
+# plot.epw.batch("CHN_Shanghai.Shanghai.583670_IWEC")
+# plot.epw.batch("CHN_Shanxi.Taiyuan.537720_CSWD")
+# plot.epw.batch("CHN_Sichuan.Chengdu.562940_SWERA")
+# plot.epw.batch("CHN_Tianjin.Tianjin.545270_CSWD")
+# plot.epw.batch("CHN_Tibet.Lhasa.555910_SWERA")
+# plot.epw.batch("CHN_Xinjiang.Urgur.Urumqi.514630_IWEC")
+# plot.epw.batch("CHN_Xinjiang.Uygur.Yining.514310_CSWD")
+# plot.epw.batch("CHN_Yunnan.Kunming.567780_IWEC")
+# 
+# filename <- "CHN_Beijing.Beijing.545110_IWEC"
 
 plot.solar.line <- function(filename){
   data <- data.read(paste("D:/Results_PV-MuC/", filename, ".epw_PV-MuC-template.txt", sep=""), FALSE)
@@ -2059,33 +2178,537 @@ save.solar.line <- function (filename, legend.range=NULL, file="singlePlot", for
   
   dev.off()
 }
+# 
+# setwd("D:/pv_diagramme")
+# 
+# save.solar.line("CHN_Beijing.Beijing.545110_IWEC")
+# save.solar.line("CHN_Chongqing.Chongqing.Shapingba.575160_SWERA")
+# save.solar.line("CHN_Fujian.Xiamen.591340_CSWD")
+# save.solar.line("CHN_Gansu.Lanzhou.528890_IWEC")
+# save.solar.line("CHN_Guangdong.Guangzhou.592870_IWEC")
+# save.solar.line("CHN_Guangdong.Shenzhen.594930_SWERA")
+# save.solar.line("CHN_Guangxi.Zhuang.Nanning.594310_CSWD")
+# save.solar.line("CHN_Hebei.Leting.545390_CSWD")
+# save.solar.line("CHN_Heilongjiang.Harbin.509530_IWEC")
+# save.solar.line("CHN_Henan.Zhengzhou.570830_CSWD")
+# save.solar.line("CHN_Hubei.Wuhan.574940_CSWD")
+# save.solar.line("CHN_Hunan.Changsha.576870_SWERA")
+# save.solar.line("CHN_Jiangsu.Nanjing.582380_CSWD")
+# save.solar.line("CHN_Liaoning.Dalian.546620_SWERA")
+# save.solar.line("CHN_Liaoning.Shenyang.543420_CSWD")
+# save.solar.line("CHN_Nei.Mongol.Hohhot.534630_CSWD")
+# save.solar.line("CHN_Qinghai.Xining.528660_CSWD")
+# save.solar.line("CHN_Shaanxi.Xian.570360_CSWD")
+# save.solar.line("CHN_Shanghai.Shanghai.583670_IWEC")
+# save.solar.line("CHN_Shanxi.Taiyuan.537720_CSWD")
+# save.solar.line("CHN_Sichuan.Chengdu.562940_SWERA")
+# save.solar.line("CHN_Tianjin.Tianjin.545270_CSWD")
+# save.solar.line("CHN_Tibet.Lhasa.555910_SWERA")
+# save.solar.line("CHN_Xinjiang.Urgur.Urumqi.514630_IWEC")
+# save.solar.line("CHN_Xinjiang.Uygur.Yining.514310_CSWD")
+# save.solar.line("CHN_Yunnan.Kunming.567780_IWEC")
+# 
 
-setwd("D:/pv_diagramme")
 
-save.solar.line("CHN_Beijing.Beijing.545110_IWEC")
-save.solar.line("CHN_Chongqing.Chongqing.Shapingba.575160_SWERA")
-save.solar.line("CHN_Fujian.Xiamen.591340_CSWD")
-save.solar.line("CHN_Gansu.Lanzhou.528890_IWEC")
-save.solar.line("CHN_Guangdong.Guangzhou.592870_IWEC")
-save.solar.line("CHN_Guangdong.Shenzhen.594930_SWERA")
-save.solar.line("CHN_Guangxi.Zhuang.Nanning.594310_CSWD")
-save.solar.line("CHN_Hebei.Leting.545390_CSWD")
-save.solar.line("CHN_Heilongjiang.Harbin.509530_IWEC")
-save.solar.line("CHN_Henan.Zhengzhou.570830_CSWD")
-save.solar.line("CHN_Hubei.Wuhan.574940_CSWD")
-save.solar.line("CHN_Hunan.Changsha.576870_SWERA")
-save.solar.line("CHN_Jiangsu.Nanjing.582380_CSWD")
-save.solar.line("CHN_Liaoning.Dalian.546620_SWERA")
-save.solar.line("CHN_Liaoning.Shenyang.543420_CSWD")
-save.solar.line("CHN_Nei.Mongol.Hohhot.534630_CSWD")
-save.solar.line("CHN_Qinghai.Xining.528660_CSWD")
-save.solar.line("CHN_Shaanxi.Xian.570360_CSWD")
-save.solar.line("CHN_Shanghai.Shanghai.583670_IWEC")
-save.solar.line("CHN_Shanxi.Taiyuan.537720_CSWD")
-save.solar.line("CHN_Sichuan.Chengdu.562940_SWERA")
-save.solar.line("CHN_Tianjin.Tianjin.545270_CSWD")
-save.solar.line("CHN_Tibet.Lhasa.555910_SWERA")
-save.solar.line("CHN_Xinjiang.Urgur.Urumqi.514630_IWEC")
-save.solar.line("CHN_Xinjiang.Uygur.Yining.514310_CSWD")
-save.solar.line("CHN_Yunnan.Kunming.567780_IWEC")
+# setwd("D:/Adaptive/PV-Study_06102014/Results")
+# 
+# save.solar.line("DEU_Berlin.103840_IWEC")
+# save.solar.line("DEU_Bremen.102240_IWEC")
+# save.solar.line("DEU_Dusseldorf.104000_IWEC")
+# save.solar.line("DEU_Frankfurt.am.Main.106370_IWEC")
+# save.solar.line("DEU_Hamburg.101470_IWEC")
+# save.solar.line("DEU_Koln.105130_IWEC")
+# save.solar.line("DEU_Mannheim.107290_IWEC")
+# save.solar.line("DEU_Munich.108660_IWEC")
+# save.solar.line("DEU_Stuttgart.107380_IWEC")
+
+# adaptiveTable_annual <- data.read("C:\\Users\\ilkyilu\\Documents\\ILEK\\Results\\tmp\\CHN_Heilongjiang.Harbin.509530_IWEC.epw\\adaptiveTable_annual.txt", FALSE)
+# adaptiveTable_monthly <- data.read("C:\\Users\\ilkyilu\\Documents\\ILEK\\Results\\tmp\\CHN_Heilongjiang.Harbin.509530_IWEC.epw\\adaptiveTable_monthly.txt", FALSE)
+# adaptiveTable_weekly <- data.read("C:\\Users\\ilkyilu\\Documents\\ILEK\\Results\\tmp\\CHN_Heilongjiang.Harbin.509530_IWEC.epw\\adaptiveTable_weekly.txt", FALSE)
+# adaptiveTable_daily <- data.read("C:\\Users\\ilkyilu\\Documents\\ILEK\\Results\\tmp\\CHN_Heilongjiang.Harbin.509530_IWEC.epw\\adaptiveTable_daily.txt", FALSE)
+# adaptiveTable_hourly <- data.read("C:\\Users\\ilkyilu\\Documents\\ILEK\\Results\\tmp\\CHN_Beijing.Beijing.545110_IWEC.epw\\AdaptivTable_hourly.txt", FALSE)
+
+
+plot.Adaptive.thickness <- function(location, annual=FALSE, monthly=FALSE, weekly=FALSE, daily=FALSE, hourly=FALSE){
+  months <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)*24
+  
+  months_marker <- (c(0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334) + c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)/2)*24
+  
+  p <- ggplot() + geom_blank()
+  if (hourly==TRUE){
+    p <- p + geom_point(data=adaptiveTable_hourly, aes(x=TIME, y=THICKNESS), stat="identity", colour="gray60", size=0.5)
+  }
+  if (annual==TRUE){
+    p <- p + geom_hline(data=adaptiveTable_annual, aes(yintercept=THICKNESS), colour="black", size=2, linetype=2)
+  }
+  if (monthly==TRUE){
+    p <- p + geom_segment(data=adaptiveTable_monthly, aes(x=TIME, y=THICKNESS, xend=TIME+24*30, yend=THICKNESS), colour="red", size=3) +
+      geom_line(data=adaptiveTable_monthly, aes(x=TIME+24*30/2, y=THICKNESS), colour="gray10")
+  }
+  if (weekly==TRUE){
+    p <- p + geom_segment(data=adaptiveTable_weekly, aes(x=TIME, y=THICKNESS, xend=TIME+7*24, yend=THICKNESS), colour="blue", size=2)
+  }
+  if (daily==TRUE){
+    p <- p + geom_line(data=adaptiveTable_daily, aes(x=TIME+12, y=THICKNESS), colour="green") +
+      geom_point(data=adaptiveTable_daily, aes(x=TIME+12, y=THICKNESS), colour="black", size=1, alpha=0.5)
+  }
+  p <- p + labs(title=paste(location, "\n"), x="time", y="thickness [ m ]") +
+    scale_x_continuous(limits = c(1, 8760),
+                       breaks=months_marker,
+                       labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"), 
+                       expand = c(0,0))+
+    scale_y_continuous(limits = c(0, 1.5),
+                       expand = c(0,0))
+  p <- theme_paper(p)
+}
+
+thickness2u <- function(thickness, conductivity){
+  u_value <- 1/(1/11 + thickness/conductivity + 1/64)
+}
+
+plot.Adaptive.u_value <- function(location, annual=FALSE, monthly=FALSE, weekly=FALSE, daily=FALSE, hourly=FALSE){
+  months <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)*24
+  months_marker <- (c(0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334) + c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)/2)*24
+  
+  p <- ggplot() + geom_blank()
+  if (hourly==TRUE){
+    p <- p + geom_point(data=adaptiveTable_hourly, aes(x=TIME, y=1/(0.04 + THICKNESS/0.09 + 0.13), size=factor(TYPE)), stat="identity", size=0.5)
+  }
+  if (annual==TRUE){
+    p <- p + geom_hline(data=adaptiveTable_annual, aes(yintercept=1/(0.04 + THICKNESS/0.09 + 0.13)), colour="black", size=2, linetype=2)
+  }
+  if (monthly==TRUE){
+    p <- p + geom_segment(data=adaptiveTable_monthly, aes(x=TIME, y=1/(0.04 + THICKNESS/0.09 + 0.13), xend=TIME+24*30, yend=1/(0.04 + THICKNESS/0.09 + 0.13)), colour="red", size=3)+
+      geom_line(data=adaptiveTable_monthly, aes(x=TIME+24*30/2, y=1/(0.04 + THICKNESS/0.09 + 0.13)), colour="gray10")
+  }
+  if (weekly==TRUE){
+    p <- p + geom_segment(data=adaptiveTable_weekly, aes(x=TIME, y=1/(0.04 + THICKNESS/0.09 + 0.13), xend=TIME+7*24, yend=1/(0.04 + THICKNESS/0.09 + 0.13)), colour="blue", size=2)
+  }
+  if (daily==TRUE){
+    p <- p + geom_line(data=adaptiveTable_daily, aes(x=TIME+12, y=1/(0.04 + THICKNESS/0.09 + 0.13)), colour="green")+
+      geom_point(data=adaptiveTable_daily, aes(x=TIME+12, y=1/(0.04 + THICKNESS/0.09 + 0.13)), colour="black", size=1, alpha=0.5)
+  }
+  p <- p + scale_y_continuous(limits=c(0,5), expand = c(0,0)) +
+  labs(title=paste(location, "\n"), x="time", y=expression(paste("U-Value [ W/", m^{2},"K ]"))) +
+    scale_x_continuous(
+      limits = c(1, 8760),
+      breaks=months_marker,
+      labels=c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"), 
+      expand = c(0,0))
+  p <- theme_paper(p)
+}
+
+plot.Adaptive <- function(location, indicator, annual, monthly, weekly, daily, hourly){
+  p <- switch(indicator,
+              "thickness" = plot.Adaptive.thickness(location, annual, monthly, weekly, daily, hourly),
+              "u-value" =plot.Adaptive.u_value(location, annual, monthly, weekly, daily, hourly)
+  )
+}
+# 
+# plot.Adaptive2 <- function(indicator){
+# #   adaptiveTable_annual <- data.read(paste(folder, "\\AdaptivTable_annual.txt", sep=""), FALSE)
+# #   adaptiveTable_monthly <- data.read(paste(folder, "\\AdaptivTable_monthly.txt", sep=""), FALSE)
+# #   adaptiveTable_weekly <- data.read(paste(folder, "\\AdaptivTable_weekly.txt", sep=""), FALSE)
+# #   adaptiveTable_daily <- data.read(paste(folder, "\\AdaptivTable_daily.txt", sep=""), FALSE)
+#   #   adaptiveTable_hourly <- data.read(paste(folder, "\\AdaptivTable_hourly.txt", sep=""), FALSE)
+#   
+#   months <- c(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)*24
+#   
+#   p <- switch(indicator,
+#               "thickness" = ggplot() +
+#                 #                       geom_bar(data=adaptiveTable_hourly, aes(x=TIME, y=THICKNESS), stat="identity") +
+#                 geom_hline(data=adaptiveTable_annual, aes(yintercept=THICKNESS/3.1), colour="yellow", size=4)+
+#                 geom_segment(data=adaptiveTable_monthly, aes(x=TIME, y=THICKNESS/3.1, xend=TIME+24*30, yend=THICKNESS/3.1), colour="red", size=3)+
+#                 geom_line(data=adaptiveTable_monthly, aes(x=TIME+24*30/2, y=THICKNESS/3.1), colour="gray10")+
+#                 geom_segment(data=adaptiveTable_weekly, aes(x=TIME, y=THICKNESS/3.1, xend=TIME+7*24, yend=THICKNESS/3.1), colour="blue", size=2)+
+#                 geom_line(data=adaptiveTable_daily, aes(x=TIME+12, y=THICKNESS/3.1), colour="gray40")+
+#                 geom_point(data=adaptiveTable_daily, aes(x=TIME+12, y=THICKNESS/3.1), colour="black", size=2)+
+#                 ylim(0, 1),
+#               "u-value" = ggplot() +
+#                 #     geom_bar(data=adaptiveTable_hourly, aes(x=TIME, y=THICKNESS), stat="identity") +
+#                 geom_hline(data=adaptiveTable_annual, aes(yintercept=1/THICKNESS), colour="yellow", size=4)+
+#                 geom_segment(data=adaptiveTable_monthly, aes(x=TIME, y=1/THICKNESS, xend=TIME+24*30, yend=1/THICKNESS), colour="red", size=3)+
+#                 geom_line(data=adaptiveTable_monthly, aes(x=TIME+24*30/2, y=1/THICKNESS), colour="gray10")+
+#                 geom_segment(data=adaptiveTable_weekly, aes(x=TIME, y=1/THICKNESS, xend=TIME+7*24, yend=1/THICKNESS), colour="blue", size=2)+
+#                 geom_line(data=adaptiveTable_daily, aes(x=TIME+12, y=1/THICKNESS), colour="gray40")+
+#                 geom_point(data=adaptiveTable_daily, aes(x=TIME+12, y=1/THICKNESS), colour="black", size=2)+
+#                 scale_y_sqrt(limits=c(0,16))
+#   )
+# }
+
+save.Adaptive <- function(location, indicator, annual=FALSE, monthly=FALSE, weekly=FALSE, daily=FALSE, hourly=FALSE, file="adapativePlot", format = "png", width=16, height=12, units="cm", dpi=300){
+  Cairo(file=paste(file, format, sep="."), 
+        type=format,
+        units=units, 
+        width=width, 
+        height=height,
+        pointsize=12,
+        dpi=dpi,
+        bg="white")
+  p <- plot.Adaptive(location, indicator, annual, monthly, weekly, daily, hourly)
+  print (p)
+  dev.off()
+}
+
+plot.Adaptive.detail <- function(data){
+  p <- ggplot(data=data, aes(x=THICKNESS/3.1, y=QP)) +
+    geom_line(size=2)+
+    geom_line(aes(y=QHEAT), colour="red", size=2)+ 
+    geom_line(aes(y=QCOOL), colour="blue", size=2)+ 
+    geom_line(aes(y=QTOTAL), colour="green", size=2)+
+    labs(x="thickness [ m ]", y="energy demand [ kWh ]") +
+    scale_x_continuous(expand = c(0,0))
+  
+  p <- theme_paper(p)
+}
+
+save.Adaptive.detail <- function(data, file="adapativeDetailPlot", format = "png", width=16, height=12, units="cm", dpi=300){
+  Cairo(file=paste(file, format, sep="."), 
+        type=format,
+        units=units, 
+        width=width, 
+        height=height,
+        pointsize=12,
+        dpi=dpi,
+        bg="white")
+  p <- plot.Adaptive.detail(data)
+  print (p)
+  dev.off()
+}
+
+
+plot.Adaptive.sum <- function(data){
+  data$Period <- factor(data$Period, as.character(data$Period))
+  p <- ggplot(data=data, aes(x=factor(Period), y=QE)) +
+    geom_bar(stat="identity")+
+    geom_text(aes(label=round(QE, 0)), vjust=-0.5)+
+    labs(x="period", y="energy demand [ kWh ]") +
+    scale_y_continuous(limits = c(0, 10000), breaks = 1000*c(0:10), expand = c(0,500))
+  
+  p <- theme_paper(p)
+}
+
+
+save.Adaptive.sum <- function(data, file="adapativeSumPlot", format = "png", width=12, height=8, units="cm", dpi=300){
+  Cairo(file=paste(file, format, sep="."), 
+        type=format,
+        units=units, 
+        width=width, 
+        height=height,
+        pointsize=12,
+        dpi=dpi,
+        bg="white")
+  p <- plot.Adaptive.sum(data)
+  print (p)
+  dev.off()
+}
+# 
+# balanceTable <- data.read("D:/singleplot.tmp", FALSE)
+# save.single(balanceTable, "heat.heating.new")
+
+theme_paper <- function(plot){
+  plot <- plot + 
+    theme(
+      panel.border = element_rect(size=1, colour="black", fill=NA),
+      panel.background = element_rect(colour="black", fill=NA),
+      axis.text = element_text(colour="black"),
+      axis.ticks.length = unit(2, "mm"),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(colour="gray")
+    )
+}
+
+
+wea2xlsx <- function(folder, filename, wb){
+  sheets <- getSheets(wb)
+  wea.data <- getdata(paste(folder, "/", filename, ".epw", sep=""))
+  wea.data$week <- (wea.data$day_of_year-1)%/%7+1
+  sum.annual <- data.frame(TIME=min(wea.data$TIME),
+                           drybulb.min=min(wea.data$drybulb), 
+                           drybulb.mean=mean(wea.data$drybulb), 
+                           drybulb.max=max(wea.data$drybulb), 
+                           drybulb.diff=max(wea.data$drybulb)-min(wea.data$drybulb), 
+                           abshum.min=min(wea.data$abshum), 
+                           abshum.mean=mean(wea.data$abshum), 
+                           abshum.max=max(wea.data$abshum), 
+                           abshum.diff=max(wea.data$abshum)-min(wea.data$abshum),
+                           relhum.min=min(wea.data$relhum), 
+                           relhum.mean=mean(wea.data$relhum), 
+                           relhum.max=max(wea.data$relhum), 
+                           relhum.diff=max(wea.data$relhum)-min(wea.data$relhum),
+                           glohorrad.min=min(wea.data$glohorrad), 
+                           glohorrad.mean=mean(wea.data$glohorrad), 
+                           glohorrad.max=max(wea.data$glohorrad), 
+                           glohorrad.diff=max(wea.data$glohorrad)-min(wea.data$glohorrad),
+                           totskycvr.min=min(wea.data$totskycvr), 
+                           totskycvr.mean=mean(wea.data$totskycvr), 
+                           totskycvr.max=max(wea.data$totskycvr), 
+                           totskycvr.diff=max(wea.data$totskycvr)-min(wea.data$totskycvr),
+                           enthalpy.min=min(wea.data$enthalpy), 
+                           enthalpy.mean=mean(wea.data$enthalpy), 
+                           enthalpy.max=max(wea.data$enthalpy), 
+                           enthalpy.diff=max(wea.data$enthalpy)-min(wea.data$enthalpy)
+  )
+  
+  addDataFrame(x = sum.annual, sheet = sheets[[12]], row.names=FALSE) 
+  
+  sum.month <- ddply(wea.data, .(month), summarise, 
+                     TIME=min(TIME),
+                     drybulb.min=min(drybulb), 
+                     drybulb.mean=mean(drybulb), 
+                     drybulb.max=max(drybulb), 
+                     drybulb.diff=max(drybulb)-min(drybulb), 
+                     abshum.min=min(abshum), 
+                     abshum.mean=mean(abshum), 
+                     abshum.max=max(abshum), 
+                     abshum.diff=max(abshum)-min(abshum),
+                     relhum.min=min(relhum), 
+                     relhum.mean=mean(relhum), 
+                     relhum.max=max(relhum), 
+                     relhum.diff=max(relhum)-min(relhum),
+                     glohorrad.min=min(glohorrad), 
+                     glohorrad.mean=mean(glohorrad), 
+                     glohorrad.max=max(glohorrad), 
+                     glohorrad.diff=max(glohorrad)-min(glohorrad),
+                     totskycvr.min=min(totskycvr), 
+                     totskycvr.mean=mean(totskycvr), 
+                     totskycvr.max=max(totskycvr), 
+                     totskycvr.diff=max(totskycvr)-min(totskycvr),
+                     enthalpy.min=min(enthalpy), 
+                     enthalpy.mean=mean(enthalpy), 
+                     enthalpy.max=max(enthalpy), 
+                     enthalpy.diff=max(enthalpy)-min(enthalpy)
+  )
+  
+  addDataFrame(x = sum.month, sheet = sheets[[11]], row.names=FALSE) 
+  
+  sum.week <- ddply(wea.data, .(week), summarise, 
+                    TIME=min(TIME),
+                    drybulb.min=min(drybulb), 
+                    drybulb.mean=mean(drybulb), 
+                    drybulb.max=max(drybulb), 
+                    drybulb.diff=max(drybulb)-min(drybulb), 
+                    abshum.min=min(abshum), 
+                    abshum.mean=mean(abshum), 
+                    abshum.max=max(abshum), 
+                    abshum.diff=max(abshum)-min(abshum),
+                    relhum.min=min(relhum), 
+                    relhum.mean=mean(relhum), 
+                    relhum.max=max(relhum), 
+                    relhum.diff=max(relhum)-min(relhum),
+                    glohorrad.min=min(glohorrad), 
+                    glohorrad.mean=mean(glohorrad), 
+                    glohorrad.max=max(glohorrad), 
+                    glohorrad.diff=max(glohorrad)-min(glohorrad),
+                    totskycvr.min=min(totskycvr), 
+                    totskycvr.mean=mean(totskycvr), 
+                    totskycvr.max=max(totskycvr), 
+                    totskycvr.diff=max(totskycvr)-min(totskycvr),
+                    enthalpy.min=min(enthalpy), 
+                    enthalpy.mean=mean(enthalpy), 
+                    enthalpy.max=max(enthalpy), 
+                    enthalpy.diff=max(enthalpy)-min(enthalpy)
+  )
+  
+  addDataFrame(x = sum.week, sheet = sheets[[10]], row.names=FALSE) 
+  
+  sum.day <- ddply(wea.data, .(day_of_year), summarise, 
+                   TIME=min(TIME),
+                   drybulb.min=min(drybulb), 
+                   drybulb.mean=mean(drybulb), 
+                   drybulb.max=max(drybulb), 
+                   drybulb.diff=max(drybulb)-min(drybulb), 
+                   abshum.min=min(abshum), 
+                   abshum.mean=mean(abshum), 
+                   abshum.max=max(abshum), 
+                   abshum.diff=max(abshum)-min(abshum),
+                   relhum.min=min(relhum), 
+                   relhum.mean=mean(relhum), 
+                   relhum.max=max(relhum), 
+                   relhum.diff=max(relhum)-min(relhum),
+                   glohorrad.min=min(glohorrad), 
+                   glohorrad.mean=mean(glohorrad), 
+                   glohorrad.max=max(glohorrad), 
+                   glohorrad.diff=max(glohorrad)-min(glohorrad),
+                   totskycvr.min=min(totskycvr), 
+                   totskycvr.mean=mean(totskycvr), 
+                   totskycvr.max=max(totskycvr), 
+                   totskycvr.diff=max(totskycvr)-min(totskycvr),
+                   enthalpy.min=min(enthalpy), 
+                   enthalpy.mean=mean(enthalpy), 
+                   enthalpy.max=max(enthalpy), 
+                   enthalpy.diff=max(enthalpy)-min(enthalpy)
+  )
+  
+  addDataFrame(x = sum.day, sheet = sheets[[9]], row.names=FALSE) 
+}
+
+adaptiveCompare <- function(folder, epw, xlsx_template){
+  setwd(folder)
+  wb <- loadWorkbook(xlsx_template)
+  sheets <- getSheets(wb)
+  
+  
+  hourlyTable_compare <- data.read(paste(folder, "/hourlyTable_adaptiveCompare.txt", sep=""), FALSE)
+  
+  dailyTable_compare <- ddply(hourlyTable_compare, .(DAY), summarise, 
+                              QP_annual=sum(QPannual),
+                              QP_monthly=sum(QPmonthly),
+                              QP_weekly=sum(QPweekly),
+                              QP_daily=sum(QPdaily),
+                              QP_hourly=sum(QPhourly)
+  )
+  #   write.xlsx(dailyTable_compare, paste("D:/dailyTable_compare.xlsx", sep=""), row.names = FALSE)
+  
+  addDataFrame(x = dailyTable_compare, sheet = sheets[[2]], row.names=FALSE) 
+  
+  weeklyTable_compare <- ddply(hourlyTable_compare, .(WEEK), summarise, 
+                               QP_annual=sum(QPannual),
+                               QP_monthly=sum(QPmonthly),
+                               QP_weekly=sum(QPweekly),
+                               QP_daily=sum(QPdaily),
+                               QP_hourly=sum(QPhourly)
+  )
+  #   write.xlsx(weeklyTable_compare, paste("D:/weeklyTable_compare.xlsx", sep=""), row.names = FALSE)
+  
+  addDataFrame(x = weeklyTable_compare, sheet = sheets[[3]], row.names=FALSE) 
+  
+  monthlyTable_compare <- ddply(hourlyTable_compare, .(MONTH), summarise, 
+                               QP_annual=sum(QPannual),
+                               QP_monthly=sum(QPmonthly),
+                               QP_weekly=sum(QPweekly),
+                               QP_daily=sum(QPdaily),
+                               QP_hourly=sum(QPhourly)
+  )
+  #   write.xlsx(monthlyTable_compare, paste("D:/monthlyTable_compare.xlsx", sep=""), row.names = FALSE)
+  
+  addDataFrame(x = monthlyTable_compare, sheet = sheets[[4]], row.names=FALSE) 
+  
+  adaptiveTable_daily <- data.read(paste(folder, "/adaptiveTable_daily.txt", sep=""), FALSE)
+  
+  addDataFrame(x = adaptiveTable_daily, sheet = sheets[[5]], row.names=FALSE) 
+  
+  adaptiveTable_weekly <- data.read(paste(folder, "/adaptiveTable_weekly.txt", sep=""), FALSE)
+  
+  addDataFrame(x = adaptiveTable_weekly, sheet = sheets[[6]], row.names=FALSE) 
+  
+  adaptiveTable_monthly <- data.read(paste(folder, "/adaptiveTable_monthly.txt", sep=""), FALSE)
+  
+  addDataFrame(x = adaptiveTable_monthly, sheet = sheets[[7]], row.names=FALSE) 
+  
+  adaptiveTable_annual <- data.read(paste(folder, "/adaptiveTable_annual.txt", sep=""), FALSE)
+  
+  addDataFrame(x = adaptiveTable_annual, sheet = sheets[[8]], row.names=FALSE) 
+  
+  weafolder <- "D:/Adaptive/climatedata"
+  
+  wea2xlsx(weafolder, epw, wb)
+  
+  saveWorkbook(wb, paste("Auswertung_", epw, ".xlsx", sep=""))
+}
+
+
+report <- function(project_folder, epw, xlsx_template){
+  subfolder <- paste(project_folder, epw, ".epw", sep="")
+  
+  adaptiveCompare(subfolder, epw, xlsx_template)
+  
+  setwd(subfolder)
+  
+  file <- paste(subfolder, "/EB_summary_adaptiveTable_annual.txt", sep="")
+  data <- data.read(file, FALSE)
+  save.single(data, epw, "balance.heating.adaptive", subtitle="\nconstant value", file=paste(epw, "_Adaptive_Annual_Heating", sep=""))
+  save.single(data, epw, "balance.cooling.adaptive", subtitle="\nconstant value", file=paste(epw, "_Adaptive_Annual_Cooling", sep=""))
+  
+  file <- paste(subfolder, "/EB_summary_adaptiveTable_hourly.txt", sep="")
+  data <- data.read(file, FALSE)
+  save.single(data, epw, "balance.heating.adaptive", subtitle="\nhourly adaptivity", file=paste(epw, "_Adaptive_Hourly_Heating", sep=""))
+  save.single(data, epw, "balance.cooling.adaptive", subtitle="\nhourly adaptivity", file=paste(epw, "_Adaptive_Hourly_Cooling", sep=""))
+}
+
+
+filenames <- c("CHN_Beijing.Beijing.545110_IWEC",
+               "CHN_Chongqing.Chongqing.Shapingba.575160_SWERA",
+               "CHN_Fujian.Xiamen.591340_CSWD",
+               "CHN_Gansu.Lanzhou.528890_IWEC",
+               "CHN_Guangdong.Guangzhou.592870_IWEC",
+               "CHN_Guangdong.Shenzhen.594930_SWERA",
+               "CHN_Guangxi.Zhuang.Nanning.594310_CSWD",
+               "CHN_Hebei.Leting.545390_CSWD",
+               "CHN_Heilongjiang.Harbin.509530_IWEC",
+               "CHN_Henan.Zhengzhou.570830_CSWD",
+               "CHN_Hubei.Wuhan.574940_CSWD",
+               "CHN_Hunan.Changsha.576870_SWERA",
+               "CHN_Jiangsu.Nanjing.582380_CSWD",
+               "CHN_Liaoning.Dalian.546620_SWERA",
+               "CHN_Liaoning.Shenyang.543420_CSWD",
+               "CHN_Nei.Mongol.Hohhot.534630_CSWD",
+               "CHN_Qinghai.Xining.528660_CSWD",
+               "CHN_Shaanxi.Xian.570360_CSWD",
+               "CHN_Shanghai.Shanghai.583670_IWEC",
+               "CHN_Shanxi.Taiyuan.537720_CSWD",
+               "CHN_Sichuan.Chengdu.562940_SWERA",
+               "CHN_Tianjin.Tianjin.545270_CSWD",
+               "CHN_Tibet.Lhasa.555910_SWERA",
+               "CHN_Xinjiang.Urgur.Urumqi.514630_IWEC",
+               "CHN_Xinjiang.Uygur.Yining.514310_CSWD",
+               "CHN_Yunnan.Kunming.567780_IWEC"
+)
+
+# project_folder <- "C:/Users/ilkyilu/Documents/Visual Studio 2013/Projects/RPlotForm/RPlotForm/bin/Debug/ROutput/tmp/"
+# project_folder <- "D:/Adaptive/27102014_QP/"
+# 
+# 
+# xlsx_template <- "d:/Auswertung_Vorlage_QP.xlsx"
+# 
+# for (i in 1:length(filenames)){
+#   # test area
+#   filename <- filenames[i]
+#   report(project_folder, filename, xlsx_template)
+# }
+
+
+# adaptiveTable_annual <- data.read("D:/Adaptive/data/CHN_Beijing.Beijing.545110_IWEC.epw/adaptiveTable_annual.txt", FALSE)
+# adaptiveTable_monthly <- data.read("D:/Adaptive/data/CHN_Beijing.Beijing.545110_IWEC.epw/adaptiveTable_monthly.txt", FALSE)
+# adaptiveTable_weekly <- data.read("D:/Adaptive/data/CHN_Beijing.Beijing.545110_IWEC.epw/adaptiveTable_weekly.txt", FALSE)
+# adaptiveTable_daily <- data.read("D:/Adaptive/data/CHN_Beijing.Beijing.545110_IWEC.epw/adaptiveTable_daily.txt", FALSE)
+# adaptiveTable_hourly <- data.read("D:/Adaptive/data/CHN_Beijing.Beijing.545110_IWEC.epw/adaptiveTable_hourly.txt", FALSE)
+
+
+# project_folder <- "C:/Users/ilkyilu/Documents/Visual Studio 2013/Projects/RPlotForm/RPlotForm/bin/Debug/ROutput/tmp/"
+# name <- "CHN_Beijing.Beijing.545110_IWEC"
+# subfolder <- paste(project_folder, name, ".epw/", sep="")
+
+
+
+# file <- paste(subfolder, "EB_summary_adaptiveTable_monthly.txt", sep="")
+# data <- data.read(file, FALSE)
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.heating.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Monthly_Heating")
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.cooling.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Monthly_Cooling")
+# 
+# file <- paste(subfolder, "EB_summary_adaptiveTable_weekly.txt", sep="")
+# data <- data.read(file, FALSE)
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.heating.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Weekly_Heating")
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.cooling.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Weekly_Cooling")
+# 
+# file <- paste(subfolder, "EB_summary_adaptiveTable_daily.txt", sep="")
+# data <- data.read(file, FALSE)
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.heating.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Daily_Heating")
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.cooling.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Daily_Cooling")
+# 
+# file <- paste(subfolder, "EB_summary_adaptiveTable_hourly.txt", sep="")
+# data <- data.read(file, FALSE)
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.heating.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Hourly_Heating")
+# save.single(data, "CHN_Beijing.Beijing.545110_IWEC", "balance.cooling.adaptive", file="CHN_Beijing.Beijing.545110_IWEC_Adaptive_Hourly_Cooling")
+
+
+# write.xlsx(dailyTable_compare, "d:/Auswertung_Vorlage.xlsx", "Energy_Daily", row.names=FALSE, append=TRUE)
+# 
+# wb <- loadWorkbook("d:/Auswertung_Vorlage.xlsx")
+# sheets <- getSheets(wb)
+# wb.Energy_Daily <-sheets[[2]]
+# 
+# addDataFrame(x = dailyTable_compare, sheet = wb.Energy_Daily, row.names=FALSE) # write data to sheet starting on line 1, column 4
+# 
+# saveWorkbook(wb, "test.excelfile.xlsx") # and of course you need to save it.
 
