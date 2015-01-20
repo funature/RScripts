@@ -10,7 +10,7 @@ data.read <- function (path, unit=TRUE) {
   return (data)
 }
 
-data <- data.read("EnergyBalance.txt", FALSE)
+data <- data.read("EnergyBalance_berlin.txt", FALSE)
 
 # summarize the value where the ID is same
 # Grouping & Summarizing Data in R, check http://www.slideshare.net/jeffreybreen/grouping-summarizing-data-in-r
@@ -53,14 +53,15 @@ data.summury$save_total <- data.summury$save * lifecycle
 
 data <- na.omit(data.summury)
 
-
-# for loop doesn't work for ggplot2 
-p <- ggplot(data=data)
-
 reconst <- function(data, lamda){
   # data$save are the value for total 36m2 area
   gg.data <- data.frame(x = data$INSU_THICKNESS*lamda/0.09, y = data$save_total)
+  gg.data$u <- lamda/gg.data$x
+  gg.data
 }
+
+# for loop doesn't work for ggplot2 
+p <- ggplot(data=data)
 
 add_layer <- function (data, p, lamda){
   gg.data <- reconst(data, lamda)
@@ -119,15 +120,86 @@ for (i in 1:nrow(matlib)){
   
   # embodied energy of each cm insulation for facade area, here 18 m2
   
-#   matlib$y_seed[i] <- matlib$embodied[i] * 0.01 * 18 / 3.6
+  #   matlib$y_seed[i] <- matlib$embodied[i] * 0.01 * 18 / 3.6
   matlib$y_seed[i] <- matlib$embodied[i] * 0.01
   
   matlib$x_seed[i] <- get_target(seed_data, matlib$y_seed[i])
+  
+  matlib$u_seed[i] <- lamda/matlib$x_seed[i]
 }
 
 
 
 # p <- p + geom_point(aes(x=get_target(seed_data, y_seed), y=y_seed), environment = .e) + geom_text(data=mataes(label=))
 p <- p + geom_point(data=matlib, aes(x=x_seed, y=y_seed)) + geom_text(data=matlib, aes(x=x_seed, y=y_seed, label=mat))
+
+
+# for loop doesn't work for ggplot2 
+p.u <- ggplot(data=data)
+
+add_layer.u <- function (data, p.u, lamda){
+  gg.data <- reconst(data, lamda)
+  p.u <- p.u + geom_line(data=gg.data, aes(x=x, y=u))
+}
+
+for (i in 1:10){
+  p.u <- add_layer.u(data, p.u, i*0.005)
+}
+
+p.u <- p.u + scale_x_continuous(limits=c(0, 0.4))
+p.u <- p.u + scale_y_continuous(limits=c(0, 1))
+
+
+p.u <- p.u + geom_point(data=matlib, aes(x=x_seed, y=u_seed)) + geom_text(data=matlib, aes(x=x_seed, y=u_seed, label=mat))
+
+qt <- function(gt, u, a){
+  qt <- 0.024 * gt * u * a
+}
+
+calc.u <- function(lamda, d){
+  u <- lamda/d
+}
+
+gt <- 2900
+
+delta.qp <- function(delta.u){
+  delta.qp <- 2296.8 * delta.u
+}
+
+p.ref <- ggplot()
+
+for (i in 1:10){
+  lamda <- i*0.005
+  
+  
+  thickness <- c(1:150) * 0.01
+  
+  table.ref <- data.frame(INSU_THICKNESS=thickness, delta.u=calc.u(lamda, thickness-0.01)-calc.u(lamda, thickness))
+  
+  table.ref$save_total=delta.qp(table.ref$delta.u)
+  p.ref <- p.ref + geom_line(data=table.ref, aes(x=INSU_THICKNESS, y=save_total))
+}
+
+p.ref <- p.ref + scale_x_continuous(limits=c(0, 0.4))
+p.ref <- p.ref + scale_y_continuous(limits=c(0, 80))
+
+for (i in 1:nrow(matlib)){
+  lamda <- matlib$lamda[i]
+  thickness <- c(1:150) * 0.01
+  
+  seed_data <- data.frame(x=thickness, delta.u=calc.u(lamda, thickness-0.01)-calc.u(lamda, thickness))
+  
+  seed_data$y=delta.qp(seed_data$delta.u)
+  
+  # embodied energy of each cm insulation for facade area, here 18 m2
+  
+  #   matlib$y_seed[i] <- matlib$embodied[i] * 0.01 * 18 / 3.6
+  matlib$y_seed[i] <- matlib$embodied[i] * 0.01
+  
+  matlib$x_seed[i] <- get_target(seed_data, matlib$y_seed[i])
+  
+  matlib$u_seed[i] <- lamda/matlib$x_seed[i]
+}
+p.ref <- p.ref + geom_point(data=matlib, aes(x=x_seed, y=y_seed)) + geom_text(data=matlib, aes(x=x_seed, y=y_seed, label=mat))
 
 # hello
