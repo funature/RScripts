@@ -10,23 +10,120 @@ data.read <- function (path, unit=TRUE) {
   return (data)
 }
 
-data <- data.read("EnergyBalance_berlin.txt", FALSE)
+theme.paper <- function(plot){
+  plot <- plot + 
+    theme(
+      panel.border = element_rect(size=1, colour="black", fill=NA),
+      panel.background = element_rect(colour="black", fill=NA),
+      axis.text = element_text(colour="black"),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(colour="gray")
+    )
+}
+
+# data <- data.read("EnergyBalance_Berlin_0.txt", FALSE)
+# 
+# # sort the data by thickness
+# attach(data)
+# data <- data[order(INSU_THICKNESS),]
+# 
+# data.all <- ddply(data,.(ID, INSU_THICKNESS, SLOPE, AZIMUTH),summarise,
+#                       QHEAT=sum(QHEAT), 
+#                       QCOOL=sum(QCOOL), 
+#                       QBAL=sum(QBAL), 
+#                       QTRANS=sum(QTRANS), 
+#                       QINF=sum(QINF), 
+#                       MWHUM=sum(MWHUM), 
+#                       MWDHUM=sum(MWDHUM), 
+#                       MWVENT=sum(MWVENT), 
+#                       QHCS=sum(QHCS), 
+#                       QHCL=sum(QHCL), 
+#                       QVENTS=sum(QVENTS), 
+#                       QINTS=sum(QINTS), 
+#                       QVENTL=sum(QVENTL), 
+#                       QINTL=sum(QINTL))
+# 
+# data.heating <- subset(data, grepl("heating or humidification", data$SITUATION))
+# 
+# data.heating <- ddply(data.heating,.(ID, INSU_THICKNESS, SLOPE, AZIMUTH),summarise,
+#                       QHEAT=sum(QHEAT), 
+#                       QCOOL=sum(QCOOL), 
+#                       QBAL=sum(QBAL), 
+#                       QTRANS=sum(QTRANS), 
+#                       QINF=sum(QINF), 
+#                       MWHUM=sum(MWHUM), 
+#                       MWDHUM=sum(MWDHUM), 
+#                       MWVENT=sum(MWVENT), 
+#                       QHCS=sum(QHCS), 
+#                       QHCL=sum(QHCL), 
+#                       QVENTS=sum(QVENTS), 
+#                       QINTS=sum(QINTS), 
+#                       QVENTL=sum(QVENTL), 
+#                       QINTL=sum(QINTL))
+# 
+# data.cooling <- subset(data, grepl("cooling or dehumidification", data$SITUATION))
+# 
+# data.cooling <- ddply(data.cooling,.(ID, INSU_THICKNESS, SLOPE, AZIMUTH),summarise,
+#                       QHEAT=sum(QHEAT), 
+#                       QCOOL=sum(QCOOL), 
+#                       QBAL=sum(QBAL), 
+#                       QTRANS=sum(QTRANS), 
+#                       QINF=sum(QINF), 
+#                       MWHUM=sum(MWHUM), 
+#                       MWDHUM=sum(MWDHUM), 
+#                       MWVENT=sum(MWVENT), 
+#                       QHCS=sum(QHCS), 
+#                       QHCL=sum(QHCL), 
+#                       QVENTS=sum(QVENTS), 
+#                       QINTS=sum(QINTS), 
+#                       QVENTL=sum(QVENTL), 
+#                       QINTL=sum(QINTL))
 
 # summarize the value where the ID is same
 # Grouping & Summarizing Data in R, check http://www.slideshare.net/jeffreybreen/grouping-summarizing-data-in-r
 
 library(plyr)
 library(ggplot2)
-data.summury <- ddply(data,.(ID, INSU_THICKNESS),summarise,qheat=sum(abs(QHEAT)), qcool=sum(abs(QCOOL)))
+library(reshape2)
+
+# data.summury <- ddply(data,.(ID, INSU_THICKNESS),summarise,qheat=sum(abs(QHEAT)), qcool=sum(abs(QCOOL)))
+
+filename <- "YearlySummary_201502161015.txt"
+data.summury <- data.read(filename, FALSE)
+
+data.summury$PEHEAT <- 1.1*data.summury$QHEAT
+data.summury$PECOOL <- 0.8*data.summury$QCOOL
+
+data.components <- melt(data.summury, id="INSU_THICKNESS", measure=c("QTRANS", "QINF", "QSOL", "QVENTS", "QINTS", "QVENTL", "QINTL"))
+data.rtl <- melt(data.summury, id="INSU_THICKNESS", measure=c("QHEAT", "QCOOL", "PEHEAT", "PECOOL"))
+
+p.components <- ggplot(data=data.components) + geom_line(aes(x=INSU_THICKNESS, y=value, group=variable, colour=factor(variable))) + 
+  scale_x_continuous(expand=c(0,0)) + scale_y_continuous(limits = c(0, 5000), expand=c(0,0))
+
+p.components <- theme.paper(p.components)
+
+p.energy <- ggplot(data=data.rtl) + geom_line(aes(x=INSU_THICKNESS, y=value, group=variable, colour=factor(variable))) + 
+  scale_x_continuous(expand=c(0,0)) + scale_y_continuous(limits = c(0, 2500), expand=c(0,0))
+
+p.energy <- theme.paper(p.energy)
+
+ggplot(data=data.summury) + 
+  geom_line(aes(x=INSU_THICKNESS, y=QHEAT)) + 
+  geom_line(aes(x=INSU_THICKNESS, y=QCOOL)) + 
+  geom_line(aes(x=INSU_THICKNESS, y=1.1*QHEAT)) + 
+  geom_line(aes(x=INSU_THICKNESS, y=0.8*QCOOL)) + 
+  ylim(0, 2500)
+  
 
 data.summury$material <- "porenbeton"
 pf_heat <- 1.1
 pf_cool <- 0.8
+wall_area <- 10.8
 
 for (i in 1:length(data.summury$INSU_THICKNESS)){
   
-  qp_heat_delta <- pf_heat*(data.summury$qheat[i-1]-data.summury$qheat[i])
-  qp_cool_delta <- pf_cool*(data.summury$qcool[i-1]-data.summury$qcool[i])
+  qp_heat_delta <- pf_heat*(data.summury$QHEAT[i-1]-data.summury$QHEAT[i])
+  qp_cool_delta <- pf_cool*(data.summury$QCOOL[i-1]-data.summury$QCOOL[i])
   qp_total_delta <- qp_heat_delta + qp_cool_delta
   thickness_delta <- (data.summury$INSU_THICKNESS[i]-data.summury$INSU_THICKNESS[i-1])*100
   
@@ -35,7 +132,7 @@ for (i in 1:length(data.summury$INSU_THICKNESS)){
   
   # nur heizen
   
-  if(i>1) data.summury$save[i] <- (qp_heat_delta/thickness_delta)/18
+  if(i>1) data.summury$save[i] <- (qp_heat_delta/thickness_delta)/wall_area
 }
 
 # for (i in 1:length(data.summury$INSU_THICKNESS)){
@@ -71,9 +168,6 @@ add_layer <- function (data, p, lamda){
 for (i in 1:10){
   p <- add_layer(data, p, i*0.005)
 }
-
-p <- p + scale_x_continuous(limits=c(0, 0.3))
-p <- p + scale_y_continuous(limits=c(-1, 150))
 
 # the function to get the x value from data frame with the y value
 # TODO set x and y axis also as parameter
@@ -131,11 +225,13 @@ for (i in 1:nrow(matlib)){
 
 
 # p <- p + geom_point(aes(x=get_target(seed_data, y_seed), y=y_seed), environment = .e) + geom_text(data=mataes(label=))
-p <- p + geom_point(data=matlib, aes(x=x_seed, y=y_seed)) + geom_text(data=matlib, aes(x=x_seed, y=y_seed, label=mat))
+p <- p + geom_point(data=matlib, aes(x=x_seed, y=y_seed)) + geom_text(data=matlib, aes(x=x_seed, y=y_seed, label=mat)) + 
+  scale_x_continuous(limits = c(0, 0.5), expand=c(0,0)) + scale_y_continuous(limits = c(0, 100), expand=c(0,0))
 
+p <- theme.paper(p)
 
 # for loop doesn't work for ggplot2 
-p.u <- ggplot(data=data)
+p.u <- ggplot()
 
 add_layer.u <- function (data, p.u, lamda){
   gg.data <- reconst(data, lamda)
@@ -146,11 +242,10 @@ for (i in 1:10){
   p.u <- add_layer.u(data, p.u, i*0.005)
 }
 
-p.u <- p.u + scale_x_continuous(limits=c(0, 0.4))
-p.u <- p.u + scale_y_continuous(limits=c(0, 1))
+p.u <- p.u + geom_point(data=matlib, aes(x=x_seed, y=u_seed)) + geom_text(data=matlib, aes(x=x_seed, y=u_seed, label=mat)) + 
+  scale_x_continuous(limits = c(0, 0.5), expand=c(0,0)) + scale_y_continuous(limits = c(0, 1.5), expand=c(0,0))
 
-
-p.u <- p.u + geom_point(data=matlib, aes(x=x_seed, y=u_seed)) + geom_text(data=matlib, aes(x=x_seed, y=u_seed, label=mat))
+p.u <- theme.paper(p.u)
 
 qt <- function(gt, u, a){
   qt <- 0.024 * gt * u * a
@@ -180,8 +275,8 @@ for (i in 1:10){
   p.ref <- p.ref + geom_line(data=table.ref, aes(x=INSU_THICKNESS, y=save_total))
 }
 
-p.ref <- p.ref + scale_x_continuous(limits=c(0, 0.4))
-p.ref <- p.ref + scale_y_continuous(limits=c(0, 80))
+p.ref <- p.ref + scale_x_continuous(limits=c(0, 1))
+p.ref <- p.ref + scale_y_continuous(limits=c(0, 200))
 
 for (i in 1:nrow(matlib)){
   lamda <- matlib$lamda[i]
@@ -201,5 +296,9 @@ for (i in 1:nrow(matlib)){
   matlib$u_seed[i] <- lamda/matlib$x_seed[i]
 }
 p.ref <- p.ref + geom_point(data=matlib, aes(x=x_seed, y=y_seed)) + geom_text(data=matlib, aes(x=x_seed, y=y_seed, label=mat))
+p.ref
 
-# hello
+
+
+# export results to table
+# write.xlsx(matlib, "optimal_result.xlsx", sheetName=filename, append=TRUE)
